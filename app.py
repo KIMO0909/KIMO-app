@@ -49,7 +49,7 @@ with st.form("entry_form", clear_on_submit=True):
     with col1:
         date_input = st.date_input("日期", datetime.now())
     with col2:
-        category = st.selectbox("類別", ["生存 (Needs)", "享樂 (Wants)", "投資/儲蓄 (Future)"])
+        category = st.selectbox("類別", ["生存", "享樂", "投資/儲蓄"])
     
     item = st.text_input("細項說明 (例如：午餐雞腿飯)")
     
@@ -103,4 +103,5 @@ with st.form("entry_form", clear_on_submit=True):
             except Exception as e:
 
                 st.error(f"❌ 發生錯誤: {e}")
+
 
