@@ -57,7 +57,7 @@ with st.form("entry_form", clear_on_submit=True):
     with col3:
         amount = st.number_input("金額", min_value=1, step=1)
     with col4:
-        payment = st.selectbox("支付方式", ["現金", "信用卡", "行動支付", "轉帳"])
+        payment = st.selectbox("支付方式", ["現金", "信用卡", "行動支付", "轉帳","乞討"])
     
     note = st.text_area("備註 (選填)")
 
@@ -103,3 +103,4 @@ with st.form("entry_form", clear_on_submit=True):
             except Exception as e:
 
                 st.error(f"❌ 發生錯誤: {e}")
+
