@@ -42,7 +42,7 @@ def connect_to_gsheet():
     return None
 
 # --- 介面設計 ---
-st.title("💰 我的記帳 APP (雲端通用版)")
+st.title("💰 我的記帳 APP (操你媽在花錢啊)")
 
 with st.form("entry_form", clear_on_submit=True):
     col1, col2 = st.columns(2)
@@ -101,4 +101,5 @@ with st.form("entry_form", clear_on_submit=True):
                     st.balloons()
                 
             except Exception as e:
+
                 st.error(f"❌ 發生錯誤: {e}")
