@@ -10,7 +10,7 @@ import time # 引入時間套件 (為了重新整理頁面用)
 MONTHLY_WANTS_BUDGET = 3000  # 設定「享樂」類別的每月上限
 
 # --- 設定網頁標題 ---
-st.set_page_config(page_title="2026 財務指揮中心", page_icon="💰")
+st.set_page_config(page_title="記帳本", page_icon="💰")
 
 # --- 核心連接功能 (智慧切換版) ---
 def connect_to_gsheet():
@@ -165,3 +165,4 @@ with st.form("entry_form", clear_on_submit=True):
                 
             except Exception as e:
                 st.error(f"❌ 發生錯誤: {e}")
+
