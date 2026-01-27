@@ -18,7 +18,7 @@ TOTAL_BUDGET = 10000    # 月總預算
 # ==========================================
 
 # --- 設定網頁標題 ---
-st.set_page_config(page_title="2026 財務指揮中心", page_icon="💰")
+st.set_page_config(page_title="記帳本", page_icon="💰")
 
 # --- 核心連接功能 ---
 def connect_to_gsheet():
@@ -182,3 +182,4 @@ with st.form("entry_form", clear_on_submit=True):
                 
             except Exception as e:
                 st.error(f"❌ 錯誤: {e}")
+
