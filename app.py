@@ -10,7 +10,7 @@ import time
 # 🎯 預算設定區 (請在這裡修改您的金額)
 # ==========================================
 BUDGET_CONFIG = {
-    "生存": 6000,       # 吃飯、交通
+    "日常開銷": 6000,       # 吃飯、交通
     "享樂": 3000,       # 網購、玩樂
     "投資/儲蓄": 1000   # 存錢
 }
@@ -46,7 +46,7 @@ st.title("💰 我的記帳 APP (操你媽再花錢)")
 # 🛡️ Level 4：全方位預算儀表板
 # ===========================
 client = connect_to_gsheet()
-current_spends = {"生存": 0, "享樂": 0, "投資/儲蓄": 0}
+current_spends = {"日常開銷": 0, "享樂": 0, "投資/儲蓄": 0}
 total_spend = 0
 
 if client:
@@ -92,7 +92,7 @@ if client:
         st.caption("📊 各類別預算詳情")
         cols = st.columns(3)
         
-        # 依照順序顯示：生存 -> 享樂 -> 投資
+        # 依照順序顯示：日常開銷 -> 享樂 -> 投資
         for idx, (cat, budget) in enumerate(BUDGET_CONFIG.items()):
             spend = current_spends[cat]
             remain = budget - spend
@@ -182,6 +182,7 @@ with st.form("entry_form", clear_on_submit=True):
                 
             except Exception as e:
                 st.error(f"❌ 錯誤: {e}")
+
 
 
 
