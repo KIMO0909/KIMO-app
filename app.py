@@ -40,8 +40,8 @@ def connect_to_gsheet():
         return client
     return None
 
-st.title("💰 我的記帳 APP (操你媽再花錢)")
-st.subheader("💰 我的記帳 APP (操你媽再花錢)")
+st.title("💰 我的記帳 APP")
+st.subheader("操你媽再花錢")
 
 # ===========================
 # 🛡️ Level 4：全方位預算儀表板
@@ -183,6 +183,7 @@ with st.form("entry_form", clear_on_submit=True):
                 
             except Exception as e:
                 st.error(f"❌ 錯誤: {e}")
+
 
 
 
