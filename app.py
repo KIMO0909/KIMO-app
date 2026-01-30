@@ -7,18 +7,18 @@ import pandas as pd
 import time
 
 # ==========================================
-# 🎯 預算設定區 (請在這裡修改您的金額)
+# 🎯 預算設定區
 # ==========================================
 BUDGET_CONFIG = {
-    "日常開銷": 6000,       # 吃飯、交通
+    "生存": 6000,       # 吃飯、交通
     "享樂": 3000,       # 網購、玩樂
     "投資/儲蓄": 1000   # 存錢
 }
-TOTAL_BUDGET = 10000    # 月總預算
+BASE_BUDGET = 10000     # 這是您的「底薪」或是「基本預算」
 # ==========================================
 
 # --- 設定網頁標題 ---
-st.set_page_config(page_title="KIMO專屬記帳本", page_icon="💰")
+st.set_page_config(page_title="2026 財務指揮中心", page_icon="💰")
 
 # --- 核心連接功能 ---
 def connect_to_gsheet():
@@ -40,15 +40,17 @@ def connect_to_gsheet():
         return client
     return None
 
-st.title("💰 我的記帳 APP")
-st.subheader("操你媽再花錢")
+st.title("💰 我的記帳 APP (收支整合版)")
 
 # ===========================
-# 🛡️ Level 4：全方位預算儀表板
+# 🛡️ Level 5：動態預算儀表板
 # ===========================
 client = connect_to_gsheet()
-current_spends = {"日常開銷": 0, "享樂": 0, "投資/儲蓄": 0}
+
+# 初始化變數
+current_spends = {k: 0 for k in BUDGET_CONFIG.keys()} # 只歸零支出類別
 total_spend = 0
+total_income = 0 # 新增：收入變數
 
 if client:
     try:
@@ -63,37 +65,53 @@ if client:
                 df = pd.DataFrame(data)
                 df['金額'] = pd.to_numeric(df['金額'], errors='coerce').fillna(0)
                 
-                # 計算各分類花費
-                for category in BUDGET_CONFIG.keys():
-                    current_spends[category] = df[df['類別'] == category]['金額'].sum()
+                # --- 🔥 關鍵修改：把資料分成「收入」跟「支出」兩堆 ---
                 
-                # 計算總花費
-                total_spend = df['金額'].sum()
+                # 1. 算收入 (類別是 '收入' 的加總)
+                total_income = df[df['類別'] == '收入']['金額'].sum()
+                
+                # 2. 算支出 (類別不是 '收入' 的才是支出)
+                expense_df = df[df['類別'] != '收入']
+                total_spend = expense_df['金額'].sum()
+
+                # 3. 算各個分類的支出 (只從支出堆裡找)
+                for category in BUDGET_CONFIG.keys():
+                    current_spends[category] = expense_df[expense_df['類別'] == category]['金額'].sum()
+                
         except:
             pass # 新月份無資料
 
-        # --- 1. 總預算大血條 ---
-        st.subheader(f"📅 本月總支出監控 ({target_month})")
-        total_remain = TOTAL_BUDGET - total_spend
-        total_progress = min(total_spend / TOTAL_BUDGET, 1.0)
+        # --- 1. 總資產大看板 ---
+        st.subheader(f"📅 本月收支戰況 ({target_month})")
         
-        c1, c2, c3 = st.columns(3)
-        c1.metric("總預算", f"${TOTAL_BUDGET}")
-        c2.metric("目前總花費", f"${int(total_spend)}")
-        c3.metric("剩餘可花", f"${int(total_remain)}", delta_color="normal" if total_remain > 0 else "inverse")
+        # 動態總預算 = 基本預算 + 賺到的錢
+        dynamic_total_budget = BASE_BUDGET + total_income
+        total_remain = dynamic_total_budget - total_spend
         
-        if total_spend > TOTAL_BUDGET:
-            st.error(f"🔥 警告！總預算已爆表！超支 ${int(total_spend - TOTAL_BUDGET)}")
+        # 進度條計算 (分母變大了)
+        total_progress = min(total_spend / dynamic_total_budget, 1.0) if dynamic_total_budget > 0 else 0
+        
+        # 顯示四個數據：基本預算 / 額外收入 / 已花費 / 剩餘
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("基本預算", f"${BASE_BUDGET}")
+        c2.metric("額外收入", f"${int(total_income)}", delta="加菜金") # 顯示賺了多少
+        c3.metric("總花費", f"${int(total_spend)}")
+        c4.metric("剩餘可花", f"${int(total_remain)}", 
+                  delta=f"{int(total_remain)}", 
+                  delta_color="normal" if total_remain > 0 else "inverse")
+        
+        if total_spend > dynamic_total_budget:
+            st.error(f"🔥 警告！總預算已爆表！超支 ${int(total_spend - dynamic_total_budget)}")
         else:
             st.progress(total_progress)
+            st.caption(f"目前額度使用率：{int(total_progress*100)}% (包含收入加成)")
 
         st.markdown("---")
 
-        # --- 2. 各分類小儀表 ---
-        st.caption("📊 各類別預算詳情")
+        # --- 2. 各支出分類詳情 ---
+        st.caption("📊 各類別支出監控")
         cols = st.columns(3)
         
-        # 依照順序顯示：日常開銷 -> 享樂 -> 投資
         for idx, (cat, budget) in enumerate(BUDGET_CONFIG.items()):
             spend = current_spends[cat]
             remain = budget - spend
@@ -101,7 +119,6 @@ if client:
             with cols[idx]:
                 st.write(f"**{cat}**")
                 st.write(f"限額: ${budget}")
-                # 顯示進度條 (如果爆了變紅色文字，沒爆顯示進度條)
                 if spend > budget:
                     st.markdown(f":red[⚠️ 已超支 ${int(spend - budget)}]")
                 else:
@@ -111,6 +128,7 @@ if client:
         st.markdown("---")
 
     except Exception as e:
+        # st.error(e) # 除錯用
         pass
 
 # ===========================
@@ -121,7 +139,9 @@ with st.form("entry_form", clear_on_submit=True):
     with col1:
         date_input = st.date_input("日期", datetime.now())
     with col2:
-        category = st.selectbox("類別", list(BUDGET_CONFIG.keys())) # 自動抓取設定的類別
+        # 🔥 修改：把「收入」加進選單裡，並且放在第一個方便選
+        category_options = ["收入"] + list(BUDGET_CONFIG.keys())
+        category = st.selectbox("類別", category_options)
     
     item = st.text_input("細項說明")
     
@@ -139,16 +159,19 @@ with st.form("entry_form", clear_on_submit=True):
         if not item:
             st.error("❌ 請輸入細項說明！")
         else:
-            # 🔥 智慧防爆檢查
+            # 🔥 智慧防爆檢查 (收入不用檢查會不會爆)
             warning_msg = []
             
-            # 1. 檢查該類別是否會爆
-            if (current_spends[category] + amount) > BUDGET_CONFIG[category]:
-                warning_msg.append(f"⚠️ 【{category}】預算會超支！")
-            
-            # 2. 檢查總預算是否會爆
-            if (total_spend + amount) > TOTAL_BUDGET:
-                warning_msg.append(f"🔥 【總預算】會爆掉！")
+            if category != "收入":
+                # 1. 檢查該類別是否會爆
+                if (current_spends[category] + amount) > BUDGET_CONFIG[category]:
+                    warning_msg.append(f"⚠️ 【{category}】預算會超支！")
+                
+                # 2. 檢查總預算是否會爆 (用動態預算來比)
+                # 這裡的邏輯是：雖然你有賺錢，但如果花費超過 (底薪+收入)，還是會警告
+                dynamic_total_budget = BASE_BUDGET + total_income
+                if (total_spend + amount) > dynamic_total_budget:
+                    warning_msg.append(f"🔥 【總資產】會透支！賺得不夠花啊！")
 
             # 如果有警告，顯示出來
             if warning_msg:
@@ -177,19 +200,15 @@ with st.form("entry_form", clear_on_submit=True):
                         payment,
                         note
                     ])
-                    status_box.success(f"✅ 記帳成功！ (${amount})")
+                    # 判斷是收入還是支出，給不同的成功訊息
+                    if category == "收入":
+                        status_box.success(f"💰 收入入帳！資金增加 ${amount}")
+                        st.balloons() # 收入就是要放氣球慶祝
+                    else:
+                        status_box.success(f"✅ 記帳成功！ (${amount})")
+                    
                     time.sleep(1)
-                    st.rerun() # 自動刷新
+                    st.rerun()
                 
             except Exception as e:
                 st.error(f"❌ 錯誤: {e}")
-
-
-
-
-
-
-
-
-
-
