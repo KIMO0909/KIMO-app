@@ -206,12 +206,13 @@ with st.form("entry_form", clear_on_submit=True):
                         st.balloons() # 收入就是要放氣球慶祝
                     else:
                         status_box.success(f"✅ 記帳成功！ (${amount})")
-                    
+                        st.snow()#下雪特效
                     time.sleep(1)
                     st.rerun()
                 
             except Exception as e:
                 st.error(f"❌ 錯誤: {e}")
+
 
 
 
