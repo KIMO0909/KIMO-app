@@ -207,11 +207,12 @@ with st.form("entry_form", clear_on_submit=True):
                     else:
                         status_box.success(f"✅ 記帳成功！ (${amount})")
                         st.snow()#下雪特效
-                    time.sleep(1)
+                    time.sleep(2)
                     st.rerun()
                 
             except Exception as e:
                 st.error(f"❌ 錯誤: {e}")
+
 
 
 
